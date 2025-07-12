@@ -107,24 +107,56 @@ export const searchPlacesByName: RequestHandler = asyncHandler(async (
 // Get places by tags
 export const getPlacesByTags: RequestHandler = asyncHandler(async (
     req: TypedRequestQuery<{ tags?: string }>,
-    res: Response
+    res: TypedResponse<IPlace[]>
 ) => {
-    const tagsParam = req.query.tags;
-    if (!tagsParam) {
-        res.status(400).json({ 
-            status: 'error',
-            message: 'Tags parameter is required' 
-        });
-        return;
-    }
-    
-    const tags = tagsParam.split(',').map(tag => tag.trim());
-    
-    const places = await Place.find({
-        tags: { 
-            $in: tags  // Find places that have any of the provided tags
+    try {
+        const tagsParam = req.query.tags;
+        if (!tagsParam) {
+            return res.status(400).json({ 
+                status: 'error',
+                message: 'Tags parameter is required' 
+            });
         }
-    }).populate('cityId');
+        
+        const tags = tagsParam.split(',').map(tag => tag.trim());
+        
+        // Basic validation of tags
+        if (tags.length === 0 || tags.some(tag => !tag)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid tags provided'
+            });
+        }
 
-    res.json(places);
+        const places = await Place.find({
+            tags: { 
+                $in: tags
+            }
+        })
+        .populate({
+            path: 'cityId',
+            select: 'name region state' // Specify the fields you want from the city
+        })
+        .select('-__v'); // Exclude the version key
+
+        if (!places || places.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: `No places found with tags: ${tags.join(', ')}`
+            });
+        }
+
+        return res.json({
+            status: 'success',
+            count: places.length,
+            data: places
+        });
+    } catch (error) {
+        console.error('Error in getPlacesByTags:', error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Error fetching places by tags',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
 });
