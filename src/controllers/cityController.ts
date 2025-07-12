@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import asyncHandler from 'express-async-handler';
 import City from '../models/cityModel';
+import State from '../models/stateModel';
 import { ICity } from '../types/city.interface';
 import { TypedRequest, TypedRequestParams, TypedResponse, TypedRequestQuery } from '../types/express';
 
@@ -94,4 +95,75 @@ export const searchCitiesByName: RequestHandler = asyncHandler(async (
         name: { $regex: req.query.query, $options: 'i' }
     });
     res.json(cities);
+});
+
+// Get lightweight city info for home
+export const getCitiesHome: RequestHandler = asyncHandler(async (
+    _req,
+    res
+) => {
+    // First get all cities with basic info
+    const cities = await City.find({}, {
+        _id: 1,
+        slug: 1,
+        name: 1,
+        overview: 1
+    }).lean();
+    
+    // Get all unique state IDs from the cities
+    const stateIds = [...new Set(cities.map(city => city.stateId).filter(Boolean))];
+    
+    // Fetch all states in one query
+    const states = await State.find({ _id: { $in: stateIds } }, { _id: 1, name: 1 }).lean();
+    const stateMap = new Map(states.map(state => [state._id.toString(), state.name]));
+    
+    // Now get the full city data with all required fields using aggregation
+    const citiesWithStateName = await City.aggregate([
+        {
+            $lookup: {
+                from: 'states',
+                localField: 'stateId',
+                foreignField: '_id',
+                as: 'state'
+            }
+        },
+        {
+            $unwind: {
+                path: '$state',
+                preserveNullAndEmptyArrays: true
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                state_id: '$stateId',
+                state_name: '$state.name',
+                slug: 1,
+                name: 1,
+                overview: 1,
+                banner_image: 1,
+                labels: 1,
+                rating: 1,
+                tagline: 1,
+                isActive: '$isActive'
+            }
+        }
+    ]);
+    
+    // Transform the data to ensure consistent field names
+    const transformedCities = citiesWithStateName.map(city => ({
+        _id: city._id,
+        state_id: city.state_id,
+        state_name: city.state_name || 'Unknown State',
+        slug: city.slug,
+        name: city.name,
+        overview: city.overview,
+        banner_image: city.banner_image,
+        labels: city.labels,
+        rating: city.rating,
+        tagline: city.tagline,
+        isActive: city.isActive
+    }));
+    
+    res.json(transformedCities);
 });

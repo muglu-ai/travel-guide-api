@@ -27,4 +27,7 @@ router.get('/category/:category', placeController.getPlacesByCategory);
 // Search places by name
 router.get('/search', placeController.searchPlacesByName);
 
+// GET places by tags
+router.get('/tags', placeController.getPlacesByTags);
+
 export default router;

@@ -4,6 +4,7 @@ import Place from '../models/placeModel';
 import { IPlace } from '../types/place.interface';
 import { TypedRequest, TypedRequestParams, TypedResponse, TypedRequestQuery } from '../types/express';
 import { NotFoundError } from '../types/errors';
+import { Request, Response } from 'express';
 
 interface CreatePlaceBody extends Omit<IPlace, 'createdAt' | 'updatedAt' | '_id'> {}
 interface UpdatePlaceBody extends Partial<CreatePlaceBody> {}
@@ -100,5 +101,30 @@ export const searchPlacesByName: RequestHandler = asyncHandler(async (
     const places = await Place.find({
         name: { $regex: req.query.query, $options: 'i' }
     });
+    res.json(places);
+});
+
+// Get places by tags
+export const getPlacesByTags: RequestHandler = asyncHandler(async (
+    req: TypedRequestQuery<{ tags?: string }>,
+    res: Response
+) => {
+    const tagsParam = req.query.tags;
+    if (!tagsParam) {
+        res.status(400).json({ 
+            status: 'error',
+            message: 'Tags parameter is required' 
+        });
+        return;
+    }
+    
+    const tags = tagsParam.split(',').map(tag => tag.trim());
+    
+    const places = await Place.find({
+        tags: { 
+            $in: tags  // Find places that have any of the provided tags
+        }
+    }).populate('cityId');
+
     res.json(places);
 });

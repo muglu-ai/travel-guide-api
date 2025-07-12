@@ -5,6 +5,9 @@ import { createCitySchema, updateCitySchema } from '../validations/cityValidatio
 
 const router = Router();
 
+// GET lightweight cities for home
+router.get('/home', cityController.getCitiesHome);
+
 // GET all cities
 router.get('/', cityController.getAllCities);
 
