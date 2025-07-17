@@ -39,30 +39,30 @@ const stateSchema = new Schema({
         type: String,
         required: true
     },
-    climate: {
-        type: String,
-        required: true
-    },
-    bestTimeToVisit: {
-        season: String,
-        months: [String],
-        description: String
-    },
-    culture: {
-        languages: [String],
-        festivals: [{
-            name: String,
-            month: String,
-            description: String
-        }],
-        cuisine: [String]
-    },
-    transportation: {
-        airports: [String],
-        railwayStations: [String],
-        busStations: [String],
-        localTransport: [String]
-    },
+    // climate: {
+    //     type: String,
+    //     required: true
+    // },
+    // bestTimeToVisit: {
+    //     season: String,
+    //     months: [String],
+    //     description: String
+    // },
+    // culture: {
+    //     languages: [String],
+    //     festivals: [{
+    //         name: String,
+    //         month: String,
+    //         description: String
+    //     }],
+    //     cuisine: [String]
+    // },
+    // transportation: {
+    //     airports: [String],
+    //     railwayStations: [String],
+    //     busStations: [String],
+    //     localTransport: [String]
+    // },
     isActive: {
         type: Boolean,
         default: true

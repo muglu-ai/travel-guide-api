@@ -11,6 +11,9 @@ router.get('/home', stateController.getStatesHome);
 // GET all states
 router.get('/', stateController.getAllStates);
 
+// GET states by labels (filter) - must be before /:id
+router.get('/labels', stateController.getStatesByLabels);
+
 // GET state by ID
 router.get('/:id', stateController.getStateById);
 
@@ -28,5 +31,10 @@ router.get('/region/:region', stateController.getStatesByRegion);
 
 // GET states by popularity
 router.get('/popular', stateController.getPopularStates);
+
+// GET state by slug
+router.get('/slug/:slug', stateController.getStateBySlug);
+
+
 
 export default router;

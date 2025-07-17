@@ -37,9 +37,9 @@ export interface IState extends Document {
   bannerImage?: string;
   description: string;
   climate: string;
-  bestTimeToVisit: IBestTimeToVisit;
-  culture: ICulture;
-  transportation: ITransportation;
+  //bestTimeToVisit: IBestTimeToVisit;
+  //culture: ICulture;
+  //transportation: ITransportation;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

@@ -45,34 +45,34 @@ const citySchema = new Schema({
         type: Schema.Types.ObjectId, 
         ref: 'Service' 
     }],
-    weather: {
-        climate: String,
-        bestTimeToVisit: String,
-        averageTemperature: {
-            summer: Number,
-            winter: Number,
-            monsoon: Number
-        }
-    },
-    transportation: {
-        airports: [String],
-        railwayStations: [String],
-        busStations: [String],
-        localTransport: [String]
-    },
-    tourism: {
-        attractions: [{
-            name: String,
-            description: String,
-            type: String
-        }],
-        activities: [String],
-        events: [{
-            name: String,
-            date: String,
-            description: String
-        }]
-    }
+    // weather: {
+    //     climate: String,
+    //     bestTimeToVisit: String,
+    //     averageTemperature: {
+    //         summer: Number,
+    //         winter: Number,
+    //         monsoon: Number
+    //     }
+    // },
+    // transportation: {
+    //     airports: [String],
+    //     railwayStations: [String],
+    //     busStations: [String],
+    //     localTransport: [String]
+    // },
+    // tourism: {
+    //     attractions: [{
+    //         name: String,
+    //         description: String,
+    //         type: String
+    //     }],
+    //     activities: [String],
+    //     events: [{
+    //         name: String,
+    //         date: String,
+    //         description: String
+    //     }]
+    // }
 }, {
     timestamps: true
 });

@@ -4,6 +4,7 @@ import State from '../models/stateModel';
 import { IState } from '../types/state.interface';
 import { TypedRequest, TypedRequestParams, TypedResponse } from '../types/express';
 import { NotFoundError } from '../types/errors';
+import Country from '../models/countryModel';
 
 interface CreateStateBody extends Omit<IState, 'createdAt' | 'updatedAt' | '_id'> {}
 interface UpdateStateBody extends Partial<CreateStateBody> {}
@@ -14,7 +15,23 @@ export const getAllStates: RequestHandler = asyncHandler(async (
     res: TypedResponse<IState[]>
 ) => {
     const states = await State.find();
-    res.json(states);
+    const results = await Promise.all(states.map(async (state) => {
+        const stateObj = state.toObject();
+        const countryId = stateObj.country_id || stateObj.countryId;
+        let countryName = null;
+        if (countryId) {
+            const country = await Country.findById(countryId);
+            countryName = country ? country.name : null;
+        }
+        return {
+            ...stateObj,
+            location: {
+                countryId,
+                countryName
+            }
+        };
+    }));
+    res.json(results);
 });
 
 // Get state by ID
@@ -26,7 +43,21 @@ export const getStateById: RequestHandler = asyncHandler(async (
     if (!state) {
         throw new NotFoundError('State not found');
     }
-    res.json(state);
+    const stateObj = state.toObject();
+    const countryId = stateObj.country_id || stateObj.countryId;
+    let countryName = null;
+    if (countryId) {
+        const country = await Country.findById(countryId);
+        countryName = country ? country.name : null;
+    }
+    const response = {
+        ...stateObj,
+        location: {
+            countryId,
+            countryName
+        }
+    };
+    res.json(response);
 });
 
 // Create new state
@@ -80,7 +111,23 @@ export const getStatesByRegion: RequestHandler = asyncHandler(async (
     res: TypedResponse<IState[]>
 ) => {
     const states = await State.find({ region: req.params.region });
-    res.json(states);
+    const results = await Promise.all(states.map(async (state) => {
+        const stateObj = state.toObject();
+        const countryId = stateObj.country_id || stateObj.countryId;
+        let countryName = null;
+        if (countryId) {
+            const country = await Country.findById(countryId);
+            countryName = country ? country.name : null;
+        }
+        return {
+            ...stateObj,
+            location: {
+                countryId,
+                countryName
+            }
+        };
+    }));
+    res.json(results);
 });
 
 // Get popular states
@@ -89,9 +136,50 @@ export const getPopularStates: RequestHandler = asyncHandler(async (
     res: TypedResponse<IState[]>
 ) => {
     const states = await State.find().sort({ popularityScore: -1 }).limit(10);
-    res.json(states);
+    const results = await Promise.all(states.map(async (state) => {
+        const stateObj = state.toObject();
+        const countryId = stateObj.country_id || stateObj.countryId;
+        let countryName = null;
+        if (countryId) {
+            const country = await Country.findById(countryId);
+            countryName = country ? country.name : null;
+        }
+        return {
+            ...stateObj,
+            location: {
+                countryId,
+                countryName
+            }
+        };
+    }));
+    res.json(results);
 });
 
+// Get state by slug
+export const getStateBySlug: RequestHandler = asyncHandler(async (
+    req: TypedRequestParams<{ slug: string }>,
+    res: TypedResponse<IState>
+) => {
+    const state = await State.findOne({ slug: req.params.slug });
+    if (!state) {
+        throw new NotFoundError('State not found');
+    }
+    const stateObj = state.toObject();
+    const countryId = stateObj.country_id || stateObj.countryId;
+    let countryName = null;
+    if (countryId) {
+        const country = await Country.findById(countryId);
+        countryName = country ? country.name : null;
+    }
+    const response = {
+        ...stateObj,
+        location: {
+            countryId,
+            countryName
+        }
+    };
+    res.json(response);
+});
 
 //get the country name based on the country id
 
@@ -109,14 +197,59 @@ export const getStatesHome: RequestHandler = asyncHandler(async (
         popularity_score: 1,
         banner_image: 1,
         labels: 1,
-        country_id: 1
+        country_id: 1,
+        countryId: 1
     });
-    
-    // Add country name to each state
-    const statesWithCountry = states.map(state => ({
-        ...state.toObject(),
-        country: "India" // Since all states appear to be from India
+    const results = await Promise.all(states.map(async (state) => {
+        const stateObj = state.toObject();
+        const countryId = stateObj.country_id || stateObj.countryId;
+        let countryName = null;
+        if (countryId) {
+            const country = await Country.findById(countryId);
+            countryName = country ? country.name : null;
+        }
+        return {
+            ...stateObj,
+            location: {
+                countryId,
+                countryName
+            }
+        };
     }));
-    
-    res.json(statesWithCountry);
+    res.json(results);
+});
+
+// Get states by labels (filter)
+export const getStatesByLabels: RequestHandler = asyncHandler(async (
+    req,
+    res
+) => {
+    const labelsParam = req.query.labels;
+    if (!labelsParam || typeof labelsParam !== 'string') {
+        res.status(400).json({ error: 'labels query parameter is required and must be a comma-separated string.' });
+        return;
+    }
+    const labels = labelsParam.split(',').map(l => l.trim()).filter(Boolean);
+    if (labels.length === 0) {
+        res.status(400).json({ error: 'At least one label must be provided.' });
+        return;
+    }
+    const states = await State.find({ labels: { $in: labels } });
+    const results = await Promise.all(states.map(async (state) => {
+        const stateObj = state.toObject();
+        const countryId = stateObj.country_id || stateObj.countryId;
+        let countryName = null;
+        if (countryId) {
+            const country = await Country.findById(countryId);
+            countryName = country ? country.name : null;
+        }
+        return {
+            ...stateObj,
+            location: {
+                countryId,
+                countryName
+            }
+        };
+    }));
+    res.json(results);
 });
