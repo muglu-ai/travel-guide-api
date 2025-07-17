@@ -11,12 +11,12 @@ interface UpdateStateBody extends Partial<CreateStateBody> {}
 
 // Get all states
 export const getAllStates: RequestHandler = asyncHandler(async (
-    req: TypedRequest,
-    res: TypedResponse<IState[]>
+    req,
+    res
 ) => {
     const states = await State.find();
     const results = await Promise.all(states.map(async (state) => {
-        const stateObj = state.toObject();
+        const stateObj = (state.toObject() as any);
         const countryId = stateObj.country_id || stateObj.countryId;
         let countryName = null;
         if (countryId) {
@@ -36,14 +36,14 @@ export const getAllStates: RequestHandler = asyncHandler(async (
 
 // Get state by ID
 export const getStateById: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ id: string }>,
-    res: TypedResponse<IState>
+    req,
+    res
 ) => {
     const state = await State.findById(req.params.id);
     if (!state) {
         throw new NotFoundError('State not found');
     }
-    const stateObj = state.toObject();
+    const stateObj = (state.toObject() as any);
     const countryId = stateObj.country_id || stateObj.countryId;
     let countryName = null;
     if (countryId) {
@@ -73,46 +73,43 @@ export const createState: RequestHandler = asyncHandler(async (
 });
 
 // Update state
-export const updateState: RequestHandler = asyncHandler(async (
-    req: TypedRequest<UpdateStateBody> & TypedRequestParams<{ id: string }>,
-    res: TypedResponse<IState>
-) => {
+export const updateState: RequestHandler = asyncHandler(async (req, res) => {
     const state = await State.findById(req.params.id);
     if (!state) {
-        throw new NotFoundError('State not found');
+        res.status(404).json({ error: 'State not found' });
+        return;
     }
-
     const updatedState = await State.findByIdAndUpdate(
         req.params.id,
         req.body,
         { new: true, runValidators: true }
     );
-
+    if (!updatedState) {
+        res.status(404).json({ error: 'State not found' });
+        return;
+    }
     res.json(updatedState);
 });
 
 // Delete state
-export const deleteState: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ id: string }>,
-    res: TypedResponse<{ message: string }>
-) => {
+export const deleteState: RequestHandler = asyncHandler(async (req, res) => {
     const state = await State.findById(req.params.id);
     if (!state) {
-        throw new NotFoundError('State not found');
+        res.status(404).json({ error: 'State not found' });
+        return;
     }
-
     await State.findByIdAndDelete(req.params.id);
     res.json({ message: 'State removed' });
 });
 
 // Get states by region
 export const getStatesByRegion: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ region: string }>,
-    res: TypedResponse<IState[]>
+    req,
+    res
 ) => {
     const states = await State.find({ region: req.params.region });
     const results = await Promise.all(states.map(async (state) => {
-        const stateObj = state.toObject();
+        const stateObj = (state.toObject() as any);
         const countryId = stateObj.country_id || stateObj.countryId;
         let countryName = null;
         if (countryId) {
@@ -132,12 +129,12 @@ export const getStatesByRegion: RequestHandler = asyncHandler(async (
 
 // Get popular states
 export const getPopularStates: RequestHandler = asyncHandler(async (
-    _req: TypedRequest,
-    res: TypedResponse<IState[]>
+    _req,
+    res
 ) => {
     const states = await State.find().sort({ popularityScore: -1 }).limit(10);
     const results = await Promise.all(states.map(async (state) => {
-        const stateObj = state.toObject();
+        const stateObj = (state.toObject() as any);
         const countryId = stateObj.country_id || stateObj.countryId;
         let countryName = null;
         if (countryId) {
@@ -157,14 +154,14 @@ export const getPopularStates: RequestHandler = asyncHandler(async (
 
 // Get state by slug
 export const getStateBySlug: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ slug: string }>,
-    res: TypedResponse<IState>
+    req,
+    res
 ) => {
     const state = await State.findOne({ slug: req.params.slug });
     if (!state) {
         throw new NotFoundError('State not found');
     }
-    const stateObj = state.toObject();
+    const stateObj = (state.toObject() as any);
     const countryId = stateObj.country_id || stateObj.countryId;
     let countryName = null;
     if (countryId) {
@@ -201,7 +198,7 @@ export const getStatesHome: RequestHandler = asyncHandler(async (
         countryId: 1
     });
     const results = await Promise.all(states.map(async (state) => {
-        const stateObj = state.toObject();
+        const stateObj = (state.toObject() as any);
         const countryId = stateObj.country_id || stateObj.countryId;
         let countryName = null;
         if (countryId) {
@@ -236,7 +233,7 @@ export const getStatesByLabels: RequestHandler = asyncHandler(async (
     }
     const states = await State.find({ labels: { $in: labels } });
     const results = await Promise.all(states.map(async (state) => {
-        const stateObj = state.toObject();
+        const stateObj = (state.toObject() as any);
         const countryId = stateObj.country_id || stateObj.countryId;
         let countryName = null;
         if (countryId) {

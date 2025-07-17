@@ -10,30 +10,27 @@ interface UpdateCityBody extends Partial<CreateCityBody> {}
 
 // Get all cities
 export const getAllCities: RequestHandler = asyncHandler(async (
-    req: TypedRequest,
-    res: TypedResponse<ICity[]>
+    req,
+    res
 ) => {
     const cities = await City.find().populate('stateId');
     res.json(cities);
 });
 
 // Get city by ID
-export const getCityById: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ id: string }>,
-    res: TypedResponse<ICity>
-) => {
-    const city = await City.findById(req.params.id).populate('stateId');
+export const getCityById: RequestHandler = asyncHandler(async (req, res) => {
+    const city = await City.findById(req.params.id);
     if (!city) {
-        res.status(404);
-        throw new Error('City not found');
+        res.status(404).json({ error: 'City not found' });
+        return;
     }
     res.json(city);
 });
 
 // Create new city
 export const createCity: RequestHandler = asyncHandler(async (
-    req: TypedRequest<CreateCityBody>,
-    res: TypedResponse<ICity>
+    req,
+    res
 ) => {
     const city = await City.create({
         ...req.body,
@@ -44,13 +41,13 @@ export const createCity: RequestHandler = asyncHandler(async (
 
 // Update city
 export const updateCity: RequestHandler = asyncHandler(async (
-    req: TypedRequest<UpdateCityBody> & TypedRequestParams<{ id: string }>,
-    res: TypedResponse<ICity>
+    req,
+    res
 ) => {
     const city = await City.findById(req.params.id);
     if (!city) {
-        res.status(404);
-        throw new Error('City not found');
+        res.status(404).json({ error: 'City not found' });
+        return;
     }
 
     const updatedCity = await City.findByIdAndUpdate(
@@ -64,13 +61,13 @@ export const updateCity: RequestHandler = asyncHandler(async (
 
 // Delete city
 export const deleteCity: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ id: string }>,
-    res: TypedResponse<{ message: string }>
+    req,
+    res
 ) => {
     const city = await City.findById(req.params.id);
     if (!city) {
-        res.status(404);
-        throw new Error('City not found');
+        res.status(404).json({ error: 'City not found' });
+        return;
     }
 
     await City.findByIdAndDelete(req.params.id);
@@ -79,8 +76,8 @@ export const deleteCity: RequestHandler = asyncHandler(async (
 
 // Get cities by state ID
 export const getCitiesByStateId: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ stateId: string }>,
-    res: TypedResponse<ICity[]>
+    req,
+    res
 ) => {
     const cities = await City.find({ stateId: req.params.stateId });
     res.json(cities);
@@ -88,8 +85,8 @@ export const getCitiesByStateId: RequestHandler = asyncHandler(async (
 
 // Search cities by name
 export const searchCitiesByName: RequestHandler = asyncHandler(async (
-    req: TypedRequestQuery<{ query: string }>,
-    res: TypedResponse<ICity[]>
+    req,
+    res
 ) => {
     const cities = await City.find({
         name: { $regex: req.query.query, $options: 'i' }

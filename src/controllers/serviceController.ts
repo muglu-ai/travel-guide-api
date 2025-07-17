@@ -27,45 +27,41 @@ export const getAllServices: RequestHandler = asyncHandler(async (
 });
 
 // Get a service by ID
-export const getServiceById: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ id: string }>,
-    res: TypedResponse<IService>
-) => {
+export const getServiceById: RequestHandler = asyncHandler(async (req, res) => {
     const service = await Service.findById(req.params.id);
     if (!service) {
-        throw new NotFoundError('Service not found');
+        res.status(404).json({ error: 'Service not found' });
+        return;
     }
     res.json(service);
 });
 
-// Update a service
-export const updateService: RequestHandler = asyncHandler(async (
-    req: TypedRequest<UpdateServiceBody> & TypedRequestParams<{ id: string }>,
-    res: TypedResponse<IService>
-) => {
-    const service = await Service.findByIdAndUpdate(
+// Update service
+export const updateService: RequestHandler = asyncHandler(async (req, res) => {
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+        res.status(404).json({ error: 'Service not found' });
+        return;
+    }
+    const updatedService = await Service.findByIdAndUpdate(
         req.params.id,
         req.body,
         { new: true, runValidators: true }
     );
-    
-    if (!service) {
-        throw new NotFoundError('Service not found');
+    if (!updatedService) {
+        res.status(404).json({ error: 'Service not found' });
+        return;
     }
-    
-    res.json(service);
+    res.json(updatedService);
 });
 
-// Delete a service
-export const deleteService: RequestHandler = asyncHandler(async (
-    req: TypedRequestParams<{ id: string }>,
-    res: TypedResponse<{ message: string }>
-) => {
+// Delete service
+export const deleteService: RequestHandler = asyncHandler(async (req, res) => {
     const service = await Service.findById(req.params.id);
     if (!service) {
-        throw new NotFoundError('Service not found');
+        res.status(404).json({ error: 'Service not found' });
+        return;
     }
-
     await Service.findByIdAndDelete(req.params.id);
     res.json({ message: 'Service removed' });
 });

@@ -11,7 +11,7 @@ export const errorHandler = (
     res.status(err.status).json({
       status: 'error',
       message: err.message,
-      ...(err.errors && { errors: err.errors }),
+      ...(err && typeof err === 'object' && 'errors' in err ? { errors: (err as any).errors } : {}),
     });
     return;
   }
