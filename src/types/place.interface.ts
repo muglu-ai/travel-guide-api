@@ -26,6 +26,7 @@ export interface IAccessibility {
 }
 
 export interface IPlace extends Document {
+  stateId: string;
   name: string;
   slug: string;
   cityId: string;

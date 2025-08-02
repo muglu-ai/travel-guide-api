@@ -6,7 +6,7 @@ const stateSchema = new Schema({
         type: String, 
         required: true 
     },
-    countryId: { 
+    country_id: { 
         type: Schema.Types.ObjectId, 
         required: true 
     },
@@ -39,6 +39,10 @@ const stateSchema = new Schema({
         type: String,
         required: true
     },
+    history: {
+        type: String
+    },
+    famousFor: [String],
     // climate: {
     //     type: String,
     //     required: true

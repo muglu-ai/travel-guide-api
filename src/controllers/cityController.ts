@@ -13,8 +13,50 @@ export const getAllCities: RequestHandler = asyncHandler(async (
     req,
     res
 ) => {
-    const cities = await City.find().populate('stateId');
-    res.json(cities);
+    const cities = await City.find()
+        .populate({
+            path: 'state_id', // use snake_case for population
+            select: 'name country_id',
+            populate: { path: 'country_id', select: 'name' }
+        })
+        .populate({
+            path: 'services',
+            select: 'name _id'
+        });
+    const result = cities.map(city => {
+        // Use snake_case for state and country references
+        let state = city.state_id || city.stateId;
+        let country = state && (state.country_id || state.countryId);
+        return {
+            _id: city._id,
+            name: city.name,
+            slug: city.slug,
+            overview: city.overview,
+            headline: city.headline,
+            subheadline: city.subheadline,
+            heroImageUrl: city.heroImageUrl,
+            location: city.location,
+            isActive: city.isActive,
+            localFood: city.localFood,
+            languagesSpoken: city.languagesSpoken,
+            emergencyHelpline: city.emergencyHelpline,
+            bannerImage: city.bannerImage,
+            about: city.about,
+            labels: city.labels,
+            rating: city.rating,
+            tagline: city.tagline,
+            services: city.services.map(service => ({ _id: service._id, name: service.name })),
+            locationInfo: {
+                stateId: state ? state._id : null,
+                stateName: state ? state.name : null,
+                countryId: country ? country._id : null,
+                countryName: country ? country.name : null
+            },
+            createdAt: city.createdAt,
+            updatedAt: city.updatedAt
+        };
+    });
+    res.json(result);
 });
 
 // Get city by ID
@@ -163,4 +205,64 @@ export const getCitiesHome: RequestHandler = asyncHandler(async (
     }));
     
     res.json(transformedCities);
+});
+
+// Get cities by labels
+export const getCitiesByLabels: RequestHandler = asyncHandler(async (req, res) => {
+    const labelsParam = req.params.labels;
+    if (!labelsParam || typeof labelsParam !== 'string') {
+        res.status(400).json({ error: 'labels parameter is required and must be a comma-separated string.' });
+        return;
+    }
+    const labels = labelsParam.split(',').map(l => l.trim()).filter(Boolean);
+    if (labels.length === 0) {
+        res.status(400).json({ error: 'At least one label must be provided.' });
+        return;
+    }
+    // Find cities with any of the given labels, populate state and services
+    const cities = await City.find({ labels: { $in: labels } })
+        .populate({
+            path: 'state_id',
+            select: 'name country_id',
+            populate: { path: 'country_id', select: 'name' }
+        })
+        .populate({
+            path: 'services',
+            select: 'name _id'
+        });
+
+    // Format the response
+    const result = cities.map(city => {
+        let state = city.state_id || city.stateId;
+        let country = state && (state.country_id || state.countryId);
+        return {
+            _id: city._id,
+            name: city.name,
+            slug: city.slug,
+            overview: city.overview,
+            headline: city.headline,
+            subheadline: city.subheadline,
+            heroImageUrl: city.heroImageUrl,
+            location: city.location,
+            isActive: city.isActive,
+            localFood: city.localFood,
+            languagesSpoken: city.languagesSpoken,
+            emergencyHelpline: city.emergencyHelpline,
+            bannerImage: city.bannerImage,
+            about: city.about,
+            labels: city.labels,
+            rating: city.rating,
+            tagline: city.tagline,
+            services: city.services.map(service => ({ _id: service._id, name: service.name })),
+            locationInfo: {
+                stateId: state ? state._id : null,
+                stateName: state ? state.name : null,
+                countryId: country ? country._id : null,
+                countryName: country ? country.name : null
+            },
+            createdAt: city.createdAt,
+            updatedAt: city.updatedAt
+        };
+    });
+    res.json(result);
 });
