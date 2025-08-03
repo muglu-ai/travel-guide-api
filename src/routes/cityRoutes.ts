@@ -11,9 +11,6 @@ router.get('/home', cityController.getCitiesHome);
 // GET all cities
 router.get('/', cityController.getAllCities);
 
-// GET cities by labels (must be above /:id)
-router.get('/labels/:labels', cityController.getCitiesByLabels);
-
 // GET city by ID
 router.get('/:id', cityController.getCityById);
 

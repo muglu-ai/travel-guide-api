@@ -11,7 +11,7 @@ const citySchema = new Schema({
         type: String, 
         required: true 
     },
-    state_id: { 
+    stateId: { 
         type: Schema.Types.ObjectId, 
         required: true, 
         ref: 'State' 
